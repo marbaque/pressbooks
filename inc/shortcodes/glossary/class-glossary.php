@@ -163,6 +163,12 @@ class Glossary implements BackMatter {
 		$output = '';
 		$glossary = '';
 		$glossary_terms = $this->getGlossaryTerms();
+		
+		//-----------------------------------
+		$temp_first_character = ""; // Temp that saves first letter of each term
+		$list_fcharacters = "<ul class='letter-nav'>"; // List of first letters
+		$anchor = ""; // Anchor link
+		//-----------------------------------
 
 		if ( empty( $glossary_terms ) ) {
 			return '';
@@ -178,6 +184,7 @@ class Glossary implements BackMatter {
 		);
 
 		if ( true === $ok && count( $glossary_terms ) > 0 ) {
+			
 			foreach ( $glossary_terms as $glossary_term_id => $glossary_term ) {
 				if ( $glossary_term['status'] !== 'publish' ) {
 					continue;
@@ -186,7 +193,20 @@ class Glossary implements BackMatter {
 					// Type was not found. Skip this glossary term.
 					continue;
 				}
-				$glossary .= sprintf(
+				
+				//-----------------------------------
+				// Adds an anchor link each time a term with a new letter appears
+				if(strcasecmp($temp_first_character,$glossary_term_id[0])) {
+					$anchor = "<h3 class=\"letrag\"><a name='$glossary_term_id[0]'>$glossary_term_id[0]</a></h3>";
+					$temp_first_character = $glossary_term_id[0];
+					$list_fcharacters .= "<li style='display:inline; font-weight: bold; margin-left: 12px;'><a href='#$temp_first_character'>$temp_first_character</a></li>";
+				} else {
+					$anchor = "";
+				}
+					
+				//-----------------------------------
+				// The anchor is concatenated to the glossary
+				$glossary .= $anchor . sprintf(
 					'<dt data-type="glossterm"><dfn id="%1$s">%2$s</dfn></dt><dd data-type="glossdef">%3$s</dd>',
 					sprintf(
 						'dfn-%s',
@@ -198,7 +218,9 @@ class Glossary implements BackMatter {
 			}
 		}
 		if ( ! empty( $glossary ) ) {
-			$output = sprintf( '<dl data-type="glossary">%1$s</dl>', $glossary );
+			//-----------------------------------
+			// The list of letters available in the glossary is concatenated
+			$output = $list_fcharacters . "</ul>" . sprintf( '<dl data-type="glossary">%1$s</dl>', $glossary );
 		}
 
 		return $output;
